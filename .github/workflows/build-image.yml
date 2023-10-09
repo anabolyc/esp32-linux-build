@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: help2man
+          packages: help2man libtool-bin
           version: 1.0
 
       - uses: actions/checkout@v3
