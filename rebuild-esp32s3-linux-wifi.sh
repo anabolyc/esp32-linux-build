@@ -3,14 +3,14 @@
 #
 # environment variables affecting the build:
 #
-# keep_toolchain=y	-- don't rebuild the toolchain, but rebuild everything else
-# keep_rootfs=y		-- don't reconfigure or rebuild rootfs from scratch. Would still apply overlay changes
-# keep_buildroot=y	-- don't redownload the buildroot, only git pull any updates into it
-# keep_bootloader=y	-- don't redownload the bootloader, only rebuild it
-# keep_etc=y		-- don't overwrite the /etc partition
+keep_toolchain=y	#-- don't rebuild the toolchain, but rebuild everything else
+keep_rootfs=y		#-- don't reconfigure or rebuild rootfs from scratch. Would still apply overlay changes
+keep_buildroot=y	#-- don't redownload the buildroot, only git pull any updates into it
+keep_bootloader=y	#-- don't redownload the bootloader, only rebuild it
+# keep_etc=y			#-- don't overwrite the /etc partition
 #
 
-SET_BAUDRATE='-b 2000000'
+SET_BAUDRATE='-b 921600'
 
 CTNG_VER=xtensa-fdpic
 CTNG_CONFIG=xtensa-esp32s3-linux-uclibcfdpic
@@ -87,13 +87,14 @@ nice make -C buildroot O=`pwd`/build-buildroot-esp32s3
 [ -d esp-hosted ] || git clone https://github.com/jcmvbkbc/esp-hosted -b $ESP_HOSTED_VER
 pushd esp-hosted/esp_hosted_ng/esp/esp_driver
 cmake .
+alias python='python3'
 cd esp-idf
 . export.sh
 cd ../network_adapter
 idf.py set-target esp32s3
 cp $ESP_HOSTED_CONFIG sdkconfig
 idf.py build
-read -p 'ready to flash... press enter'
+# read -p 'ready to flash... press enter'
 while ! idf.py $SET_BAUDRATE flash ; do
 	read -p 'failure... press enter to try again'
 done
@@ -105,6 +106,11 @@ popd
 parttool.py $SET_BAUDRATE write_partition --partition-name linux  --input build-buildroot-esp32s3/images/xipImage
 parttool.py $SET_BAUDRATE write_partition --partition-name rootfs --input build-buildroot-esp32s3/images/rootfs.cramfs
 if [ -z "$keep_etc" ] ; then
-	read -p 'ready to flash /etc... press enter'
+	# read -p 'ready to flash /etc... press enter'
 	parttool.py $SET_BAUDRATE write_partition --partition-name etc --input build-buildroot-esp32s3/images/etc.jffs2
 fi
+
+#
+# monitor
+#
+idf.py monitor $SET_BAUDRATE
