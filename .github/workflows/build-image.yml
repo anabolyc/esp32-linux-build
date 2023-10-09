@@ -51,11 +51,11 @@ jobs:
     #       # ./firmware/third-party-forks/esp32-cspot/cspot/bell/nanopb/examples/platformio
     runs-on: ubuntu-latest
     steps:
-      - uses: msys2/setup-msys2@v2
-        with:
-          update: true
-          install: >-
-            autotools
+      # - uses: msys2/setup-msys2@v2
+      #   with:
+      #     update: true
+      #     install: >-
+      #       autotools
 
       - uses: actions/checkout@v3
         with:
