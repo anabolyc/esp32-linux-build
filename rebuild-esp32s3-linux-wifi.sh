@@ -63,12 +63,12 @@ fi
 # kernel and rootfs
 #
 if [ ! -d build-buildroot-esp32s3 ] ; then
-	nice make -C buildroot O=`pwd`/build-buildroot-esp32s3 $BUILDROOT_CONFIG
+	make -C buildroot O=`pwd`/build-buildroot-esp32s3 $BUILDROOT_CONFIG
 	buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PATH `pwd`/crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic
 	buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
 	buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
 fi
-nice make -C buildroot O=`pwd`/build-buildroot-esp32s3
+make -C buildroot O=`pwd`/build-buildroot-esp32s3
 [ -f build-buildroot-esp32s3/images/xipImage -a -f build-buildroot-esp32s3/images/rootfs.cramfs -a -f build-buildroot-esp32s3/images/etc.jffs2 ] || exit 1
 
 #

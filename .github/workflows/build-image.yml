@@ -38,7 +38,7 @@ jobs:
 
       - name: Configure buildroot 
         env:
-          XTENSA_GNU_CONFIG: `pwd`/xtensa-dynconfig/esp32s3.so
+          XTENSA_GNU_CONFIG: ./xtensa-dynconfig/esp32s3.so
         run: |
           make -C buildroot O=`pwd`/build-buildroot-esp32s3 esp32s3_defconfig
           buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PATH `pwd`/crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic
