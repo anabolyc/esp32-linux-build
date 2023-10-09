@@ -79,7 +79,20 @@ jobs:
         working-directory: crosstool-NG
         run: |
           ./ct-ng xtensa-esp32s3-linux-uclibcfdpic
-          CT_PREFIX=`pwd`/builds nice ./ct-ng build
+          CT_PREFIX=`pwd`/builds ./ct-ng build
+
+      - name: Configure buildroot 
+        working-directory: crosstool-NG
+        run: |
+          make -C buildroot O=`pwd`/build-buildroot-esp32s3 esp32s3_defconfig
+          buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PATH `pwd`/crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic
+          buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
+          buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
+      
+      - name: Configure buildroot 
+        working-directory: crosstool-NG
+        run: |
+          make -C buildroot O=`pwd`/build-buildroot-esp32s3
 
       # - name: Cache pip
       #   uses: actions/cache@v2
