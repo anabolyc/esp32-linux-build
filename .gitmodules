@@ -6,3 +6,7 @@
 	path = esp32s3
 	url = https://github.com/jcmvbkbc/config-esp32s3
 	branch = master
+[submodule "crosstool-NG"]
+	path = crosstool-NG
+	url = https://github.com/jcmvbkbc/crosstool-NG.git
+	branch = xtensa-fdpic
