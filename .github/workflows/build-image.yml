@@ -58,10 +58,11 @@ jobs:
       #       autotools
 
       - uses: actions/checkout@v3
+        name: Checkout submodules
         with:
           submodules: "recursive"
 
-      - name: Build examples
+      - name: Build dynconfig
         run: |
           make -C xtensa-dynconfig ORIG=1 CONF_DIR=`pwd` esp32s3.so
 

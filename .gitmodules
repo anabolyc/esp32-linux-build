@@ -3,6 +3,6 @@
 	url = https://github.com/jcmvbkbc/xtensa-dynconfig
 	branch = original
 [submodule "config-esp32s3"]
-	path = config-esp32s3
+	path = esp32s3
 	url = https://github.com/jcmvbkbc/config-esp32s3
 	branch = master
