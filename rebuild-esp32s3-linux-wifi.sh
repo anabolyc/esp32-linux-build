@@ -3,10 +3,10 @@
 #
 # environment variables affecting the build:
 #
-keep_toolchain=y	#-- don't rebuild the toolchain, but rebuild everything else
-keep_rootfs=y		#-- don't reconfigure or rebuild rootfs from scratch. Would still apply overlay changes
-keep_buildroot=y	#-- don't redownload the buildroot, only git pull any updates into it
-keep_bootloader=y	#-- don't redownload the bootloader, only rebuild it
+# keep_toolchain=y	#-- don't rebuild the toolchain, but rebuild everything else
+# keep_rootfs=y		#-- don't reconfigure or rebuild rootfs from scratch. Would still apply overlay changes
+# keep_buildroot=y	#-- don't redownload the buildroot, only git pull any updates into it
+# keep_bootloader=y	#-- don't redownload the bootloader, only rebuild it
 # keep_etc=y			#-- don't overwrite the /etc partition
 #
 
@@ -19,32 +19,30 @@ BUILDROOT_CONFIG=esp32s3_defconfig
 ESP_HOSTED_VER=ipc
 ESP_HOSTED_CONFIG=sdkconfig.defaults.esp32s3
 
-if [ ! -d autoconf-2.71/root/bin ] ; then
-	wget https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.xz
-	tar -xf autoconf-2.71.tar.xz
-	pushd autoconf-2.71
-	./configure --prefix=`pwd`/root
-	make && make install
-	popd
-fi
-export PATH=`pwd`/autoconf-2.71/root/bin:$PATH
+# if [ ! -d autoconf-2.71/root/bin ] ; then
+# 	wget https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.xz
+# 	tar -xf autoconf-2.71.tar.xz
+# 	pushd autoconf-2.71
+# 	./configure --prefix=`pwd`/root
+# 	make && make install
+# 	popd
+# fi
+# export PATH=`pwd`/autoconf-2.71/root/bin:$PATH
 
-if [ -z "$keep_toolchain$keep_buildroot$keep_rootfs$keep_bootloader" ] ; then
-	rm -rf build
-else
-	[ -n "$keep_rootfs" ] || rm -rf build/build-buildroot-esp32s3
-	[ -n "$keep_buildroot" ] || rm -rf build/buildroot
-	[ -n "$keep_bootloader" ] || rm -rf build/esp-hosted
-fi
-mkdir -p build
-cd build
+# if [ -z "$keep_toolchain$keep_buildroot$keep_rootfs$keep_bootloader" ] ; then
+# 	rm -rf build
+# else
+# 	[ -n "$keep_rootfs" ] || rm -rf build/build-buildroot-esp32s3
+# 	[ -n "$keep_buildroot" ] || rm -rf build/buildroot
+# 	[ -n "$keep_bootloader" ] || rm -rf build/esp-hosted
+# fi
+# mkdir -p build
+# cd build
 
 #
 # dynconfig
 #
 if [ ! -f xtensa-dynconfig/esp32s3.so ] ; then
-	git clone https://github.com/jcmvbkbc/xtensa-dynconfig -b original
-	git clone https://github.com/jcmvbkbc/config-esp32s3 esp32s3
 	make -C xtensa-dynconfig ORIG=1 CONF_DIR=`pwd` esp32s3.so
 fi
 export XTENSA_GNU_CONFIG=`pwd`/xtensa-dynconfig/esp32s3.so
@@ -53,11 +51,10 @@ export XTENSA_GNU_CONFIG=`pwd`/xtensa-dynconfig/esp32s3.so
 # toolchain
 #
 if [ ! -x crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic/bin/xtensa-esp32s3-linux-uclibcfdpic-gcc ] ; then
-	git clone https://github.com/jcmvbkbc/crosstool-NG.git -b $CTNG_VER
 	pushd crosstool-NG
 	./bootstrap && ./configure --enable-local && make
 	./ct-ng $CTNG_CONFIG
-	CT_PREFIX=`pwd`/builds nice ./ct-ng build
+	CT_PREFIX=`pwd`/builds ./ct-ng build --quiet
 	popd
 	[ -x crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic/bin/xtensa-esp32s3-linux-uclibcfdpic-gcc ] || exit 1
 fi
@@ -65,13 +62,6 @@ fi
 #
 # kernel and rootfs
 #
-if [ ! -d buildroot ] ; then
-	git clone https://github.com/jcmvbkbc/buildroot -b $BUILDROOT_VER
-else
-	pushd buildroot
-	git pull
-	popd
-fi
 if [ ! -d build-buildroot-esp32s3 ] ; then
 	nice make -C buildroot O=`pwd`/build-buildroot-esp32s3 $BUILDROOT_CONFIG
 	buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PATH `pwd`/crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic

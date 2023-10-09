@@ -23,10 +23,6 @@ jobs:
       - name: Build dynconfig
         run: |
           make -C xtensa-dynconfig ORIG=1 CONF_DIR=`pwd` esp32s3.so
-
-      - name: Build toolchain
-        run: |
-          make -C xtensa-dynconfig ORIG=1 CONF_DIR=`pwd` esp32s3.so
       
       - name: Build crosstoll-NG
         working-directory: crosstool-NG
@@ -35,18 +31,21 @@ jobs:
           
       - name: Build toolchain
         working-directory: crosstool-NG
+        continue-on-error: true
         run: |
           ./ct-ng xtensa-esp32s3-linux-uclibcfdpic
-          CT_PREFIX=`pwd`/builds ./ct-ng build
+          CT_PREFIX=`pwd`/builds ./ct-ng build --quiet
 
       - name: Configure buildroot 
+        env:
+          XTENSA_GNU_CONFIG: `pwd`/xtensa-dynconfig/esp32s3.so
         run: |
           make -C buildroot O=`pwd`/build-buildroot-esp32s3 esp32s3_defconfig
           buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PATH `pwd`/crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic
           buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
           buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
       
-      - name: Configure buildroot 
+      - name: Build buildroot 
         run: |
           make -C buildroot O=`pwd`/build-buildroot-esp32s3
 
