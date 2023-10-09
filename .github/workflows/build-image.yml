@@ -52,11 +52,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Build Image
     steps:
-      # - uses: msys2/setup-msys2@v2
-      #   with:
-      #     update: true
-      #     install: >-
-      #       autotools
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: help2man
+          version: 1.0
 
       - uses: actions/checkout@v3
         name: Checkout submodules
