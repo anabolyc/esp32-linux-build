@@ -18,3 +18,7 @@
 	path = esp-hosted
 	url = https://github.com/jcmvbkbc/esp-hosted
 	branch = ipc
+[submodule "esp-idf"]
+	path = esp-idf
+	url = https://github.com/jcmvbkbc/esp-idf
+	branch = linux-5.0.

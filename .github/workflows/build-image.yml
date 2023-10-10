@@ -6,7 +6,45 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+
+  build-bootloader:
+    runs-on: ubuntu-latest
+    name: Build Bootloader
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout submodules
+        with:
+          submodules: "recursive"
+
+      - name: Prepare esp_driver
+        working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver
+        run: |
+          cmake .
+    
+      - name: Build esp_driver
+        working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter
+        run: |
+          . ../esp-idf/export.sh
+          idf.py set-target esp32s3
+          cp sdkconfig.defaults.esp32s3 sdkconfig
+          idf.py build
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: partitions-table
+          path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/partition_table/partition-table.bin
+  
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bootloader
+          path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/bootloader/bootloader.bin
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: firmware
+          path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/network_adapter.bin
+
+  build-image:
     runs-on: ubuntu-latest
     name: Build Image
     steps:
@@ -48,19 +86,6 @@ jobs:
       - name: Build buildroot 
         run: |
           make -C buildroot O=`pwd`/build-buildroot-esp32s3
-
-      - name: Prepare esp_driver
-        working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver
-        run: |
-          cmake .
-  
-      - name: Build esp_driver
-        working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter
-        run: |
-          . ../esp-idf/export.sh
-          idf.py set-target esp32s3
-          cp sdkconfig.defaults.esp32s3 sdkconfig
-          idf.py build
 
       - uses: actions/upload-artifact@v3
         with:
