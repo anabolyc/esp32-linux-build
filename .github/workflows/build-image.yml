@@ -79,6 +79,15 @@ jobs:
         run: |
           CT_PREFIX=`pwd`/builds ./ct-ng build --quiet
 
+      - name: Upload toolchain build log
+        uses: actions/upload-artifact@v3
+        with:
+          name: toolchain-build.log
+          path: |
+            crosstool-NG/build.log
+            crosstool-NG/.config
+        if: ${{ always() }}
+
       - name: Configure buildroot 
         env:
           XTENSA_GNU_CONFIG: ./xtensa-dynconfig/esp32s3.so
