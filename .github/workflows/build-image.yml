@@ -67,11 +67,16 @@ jobs:
         run: |
           ./bootstrap && ./configure --enable-local && make
           
+      - name: Prepare toolchain build
+        working-directory: crosstool-NG
+        run: |
+          ./ct-ng xtensa-esp32s3-linux-uclibcfdpic
+          sed -i -e '/CT_LOG_PROGRESS_BAR/s/y$/n/' .config
+
       - name: Build toolchain
         working-directory: crosstool-NG
         continue-on-error: true
         run: |
-          ./ct-ng xtensa-esp32s3-linux-uclibcfdpic
           CT_PREFIX=`pwd`/builds ./ct-ng build --quiet
 
       - name: Configure buildroot 

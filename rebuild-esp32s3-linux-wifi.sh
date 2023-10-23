@@ -1,5 +1,7 @@
 #! /bin/bash -x
 
+REBUILD_TOOLCHAIN=y
+
 CTNG_CONFIG=xtensa-esp32s3-linux-uclibcfdpic
 BUILDROOT_CONFIG=esp32s3_defconfig
 ESP_HOSTED_CONFIG=sdkconfig.defaults.esp32s3
@@ -13,13 +15,14 @@ fi
 export XTENSA_GNU_CONFIG=`pwd`/xtensa-dynconfig/esp32s3.so
 
 #
-# toolchain
+# Build toolchain
 #
-if [ ! -x crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic/bin/xtensa-esp32s3-linux-uclibcfdpic-gcc ] ; then
+if [ ! -z REBUILD_TOOLCHAIN ] || [ ! -x crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic/bin/xtensa-esp32s3-linux-uclibcfdpic-gcc ] ; then
 	pushd crosstool-NG
 	./bootstrap && ./configure --enable-local && make
 	./ct-ng $CTNG_CONFIG
-	CT_PREFIX=`pwd`/builds ./ct-ng build --quiet
+	sed -i -e '/CT_LOG_PROGRESS_BAR/s/y$/n/' .config
+	CT_PREFIX=`pwd`/builds ./ct-ng build
 	popd
 	[ -x crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic/bin/xtensa-esp32s3-linux-uclibcfdpic-gcc ] || exit 1
 fi

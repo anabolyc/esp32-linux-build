@@ -19,7 +19,8 @@ if [ ! -x crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic/bin/xtensa-esp32s
 	pushd crosstool-NG
 	./bootstrap && ./configure --enable-local && make
 	./ct-ng $CTNG_CONFIG
-	CT_PREFIX=`pwd`/builds ./ct-ng build --quiet
+	sed -i -e '/CT_LOG_PROGRESS_BAR/s/y$/n/' .config
+	CT_PREFIX=`pwd`/builds ./ct-ng build
 	popd
 	[ -x crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic/bin/xtensa-esp32s3-linux-uclibcfdpic-gcc ] || exit 1
 fi
