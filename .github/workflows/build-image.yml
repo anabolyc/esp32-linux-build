@@ -29,17 +29,20 @@ jobs:
           cp sdkconfig.defaults.esp32s3 sdkconfig
           idf.py build
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload partition-table.bin
+        uses: actions/upload-artifact@v3
         with:
           name: partitions-table
           path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/partition_table/partition-table.bin
   
-      - uses: actions/upload-artifact@v3
+      - name: Upload bootloader.bin
+        uses: actions/upload-artifact@v3
         with:
           name: bootloader
           path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/bootloader/bootloader.bin
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload network_adapter.bin
+        uses: actions/upload-artifact@v3
         with:
           name: firmware
           path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/network_adapter.bin
@@ -50,7 +53,7 @@ jobs:
     steps:
       - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: help2man libtool-bin
+          packages: help2man libtool-bin ninja-build
           version: 1.0
 
       - uses: actions/checkout@v3
@@ -101,17 +104,20 @@ jobs:
         run: |
           make -C buildroot O=`pwd`/build-buildroot-esp32s3
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload xipImage
+        uses: actions/upload-artifact@v3
         with:
           name: linux-kernel
           path: build-buildroot-esp32s3/images/xipImage
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload rootfs
+        uses: actions/upload-artifact@v3
         with:
           name: rootfs
           path: build-buildroot-esp32s3/images/rootfs.cramfs
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload etc.jffs2
+        uses: actions/upload-artifact@v3
         with:
           name: etc-partition
           path: build-buildroot-esp32s3/images/etc.jffs2
