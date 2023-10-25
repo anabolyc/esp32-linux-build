@@ -80,7 +80,7 @@ jobs:
         working-directory: crosstool-NG
         continue-on-error: true
         run: |
-          CT_PREFIX=`pwd`/builds ./ct-ng build --quiet
+          CT_PREFIX=`pwd`/builds XTENSA_GNU_CONFIG=`pwd`/../xtensa-dynconfig/esp32s3.so ./ct-ng build --quiet
 
       - name: Upload toolchain build log
         uses: actions/upload-artifact@v3
@@ -92,8 +92,6 @@ jobs:
         if: ${{ always() }}
 
       - name: Configure buildroot 
-        env:
-          XTENSA_GNU_CONFIG: ./xtensa-dynconfig/esp32s3.so
         run: |
           make -C buildroot O=`pwd`/build-buildroot-esp32s3 esp32s3_defconfig
           buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PATH `pwd`/crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic
