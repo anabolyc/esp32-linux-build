@@ -11,18 +11,30 @@ jobs:
     runs-on: ubuntu-latest
     name: Create release
     steps:
+      - uses: actions/checkout@v3
+
       - uses: actions/create-release@latest
         name: Create Release
+        id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ env.GITHUB_REF_NAME }}
+          release_name: Release ${{ env.GITHUB_REF_NAME }}
           body: |
             Created automatically of GH Action
           draft: true
           prerelease: false
       
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./rebuild-esp32s3-linux-wifi.sh
+          asset_name: rebuild-esp32s3-linux-wifi.sh
+          asset_content_type: text/x-shellscript
 
   # build-bootloader:
   #   runs-on: ubuntu-latest
