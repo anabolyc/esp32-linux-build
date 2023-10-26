@@ -89,7 +89,7 @@ jobs:
           path: |
             crosstool-NG/build.log
             crosstool-NG/.config
-        if: ${{ always() }}
+        if: failure()
 
       - name: Configure buildroot 
         run: |
@@ -100,7 +100,7 @@ jobs:
       
       - name: Build buildroot 
         run: |
-          make -C buildroot O=`pwd`/build-buildroot-esp32s3
+          XTENSA_GNU_CONFIG=`pwd`/xtensa-dynconfig/esp32s3.so make -C buildroot O=`pwd`/build-buildroot-esp32s3
 
       - name: Upload xipImage
         uses: actions/upload-artifact@v3
