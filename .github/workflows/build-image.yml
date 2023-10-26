@@ -2,12 +2,11 @@ name: Build Image
 
 on:   
   push: 
-  # pull_request:
-  workflow_dispatch:
+  pull_request:
+  # workflow_dispatch:
 
 jobs:
-
-  build-bootloader:
+  build-artifacts:
     runs-on: ubuntu-latest
     name: Build Bootloader
     steps:
@@ -49,7 +48,6 @@ jobs:
 
   # create-release:
   #   runs-on: ubuntu-latest
-  #   needs: [ build-bootloader ]
   #   name: Create release
   #   steps:
   #     - uses: actions/checkout@v3
@@ -68,7 +66,7 @@ jobs:
           draft: true
           prerelease: false
       
-      - name: Upload partition-table.bin
+      - name: Upload partition-table.bin to release
         if: github.ref_type == 'tag'
         uses: actions/upload-release-asset@v1
         env:
@@ -76,10 +74,10 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_content_type: application/x-binary
-          asset_name: partitions-table
+          asset_name: partition-table.bin
           asset_path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/partition_table/partition-table.bin
 
-      - name: Upload bootloader.bin
+      - name: Upload bootloader.bin to release
         if: github.ref_type == 'tag'
         uses: actions/upload-release-asset@v1
         env:
@@ -87,10 +85,10 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_content_type: application/x-binary
-          asset_name: bootloader
+          asset_name: bootloader.bin
           asset_path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/bootloader/bootloader.bin
 
-      - name: Upload network_adapter.bin
+      - name: Upload network_adapter.bin to release
         if: github.ref_type == 'tag'
         uses: actions/upload-release-asset@v1
         env:
@@ -98,78 +96,123 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_content_type: application/x-binary
-          asset_name: firmware
+          asset_name: network_adapter.bin
           asset_path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/network_adapter.bin
 
   # build-image:
   #   runs-on: ubuntu-latest
   #   name: Build Image
   #   steps:
-  #     - uses: awalsh128/cache-apt-pkgs-action@latest
-  #       with:
-  #         packages: help2man libtool-bin ninja-build
-  #         version: 1.0
 
-  #     - uses: actions/checkout@v3
-  #       name: Checkout submodules
-  #       with:
-  #         submodules: "recursive"
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: help2man libtool-bin ninja-build
+          version: 1.0
 
-  #     - name: Build dynconfig
-  #       run: |
-  #         make -C xtensa-dynconfig ORIG=1 CONF_DIR=`pwd` esp32s3.so
+      - uses: actions/checkout@v3
+        name: Checkout submodules
+        with:
+          submodules: "recursive"
+
+      - name: Build dynconfig
+        run: |
+          make -C xtensa-dynconfig ORIG=1 CONF_DIR=`pwd` esp32s3.so
       
-  #     - name: Build crosstoll-NG
-  #       working-directory: crosstool-NG
-  #       run: |
-  #         ./bootstrap && ./configure --enable-local && make
+      - name: Build crosstoll-NG
+        working-directory: crosstool-NG
+        run: |
+          ./bootstrap && ./configure --enable-local && make
           
-  #     - name: Prepare toolchain build
-  #       working-directory: crosstool-NG
-  #       run: |
-  #         ./ct-ng xtensa-esp32s3-linux-uclibcfdpic
-  #         sed -i -e '/CT_LOG_PROGRESS_BAR/s/y$/n/' .config
+      - name: Prepare toolchain build
+        working-directory: crosstool-NG
+        run: |
+          ./ct-ng xtensa-esp32s3-linux-uclibcfdpic
+          sed -i -e '/CT_LOG_PROGRESS_BAR/s/y$/n/' .config
 
-  #     - name: Build toolchain
-  #       working-directory: crosstool-NG
-  #       continue-on-error: true
-  #       run: |
-  #         CT_PREFIX=`pwd`/builds XTENSA_GNU_CONFIG=`pwd`/../xtensa-dynconfig/esp32s3.so ./ct-ng build --quiet
+      - name: Build toolchain
+        working-directory: crosstool-NG
+        continue-on-error: true
+        run: |
+          CT_PREFIX=`pwd`/builds XTENSA_GNU_CONFIG=`pwd`/../xtensa-dynconfig/esp32s3.so ./ct-ng build --quiet
 
-  #     - name: Upload toolchain build log
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: toolchain-build.log
-  #         path: |
-  #           crosstool-NG/build.log
-  #           crosstool-NG/.config
-  #       if: failure()
+      - name: Upload toolchain build log
+        uses: actions/upload-artifact@v3
+        with:
+          name: toolchain-build.log
+          path: |
+            crosstool-NG/build.log
+            crosstool-NG/.config
+        if: failure()
 
-  #     - name: Configure buildroot 
-  #       run: |
-  #         make -C buildroot O=`pwd`/build-buildroot-esp32s3 esp32s3_defconfig
-  #         buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PATH `pwd`/crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic
-  #         buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
-  #         buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
+      - name: Configure buildroot 
+        run: |
+          make -C buildroot O=`pwd`/build-buildroot-esp32s3 esp32s3_defconfig
+          buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PATH `pwd`/crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic
+          buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
+          buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
       
-  #     - name: Build buildroot 
-  #       run: |
-  #         XTENSA_GNU_CONFIG=`pwd`/xtensa-dynconfig/esp32s3.so make -C buildroot O=`pwd`/build-buildroot-esp32s3
+      - name: Build buildroot 
+        run: |
+          XTENSA_GNU_CONFIG=`pwd`/xtensa-dynconfig/esp32s3.so make -C buildroot O=`pwd`/build-buildroot-esp32s3
 
-  #     - name: Upload xipImage
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: linux-kernel
-  #         path: build-buildroot-esp32s3/images/xipImage
+      - name: Upload xipImage
+        uses: actions/upload-artifact@v3
+        with:
+          name: xipImage
+          path: build-buildroot-esp32s3/images/xipImage
 
-  #     - name: Upload rootfs
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: rootfs
-  #         path: build-buildroot-esp32s3/images/rootfs.cramfs
+      - name: Upload rootfs
+        uses: actions/upload-artifact@v3
+        with:
+          name: rootfs.cramfs
+          path: build-buildroot-esp32s3/images/rootfs.cramfs
 
-  #     - name: Upload etc.jffs2
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: etc-partition
-  #         path: build-buildroot-esp32s3/images/etc.jffs2
+      - name: Upload etc.jffs2
+        uses: actions/upload-artifact@v3
+        with:
+          name: etc.jffs2
+          path: build-buildroot-esp32s3/images/etc.jffs2
+
+      - name: Upload linux-kernel to release
+        if: github.ref_type == 'tag'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_content_type: application/x-binary
+          asset_name: xipImage
+          asset_path: build-buildroot-esp32s3/images/xipImage
+
+      - name: Upload rootfs.cramfs to release
+        if: github.ref_type == 'tag'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_content_type: application/x-binary
+          asset_name: rootfs.cramfs
+          asset_path: build-buildroot-esp32s3/images/rootfs.cramfs
+
+      - name: Upload etc.jffs2 to release
+        if: github.ref_type == 'tag'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_content_type: application/x-binary
+          asset_name: etc.jffs2
+          asset_path: build-buildroot-esp32s3/images/etc.jffs2
+
+      - name: Upload flash-all.sh to release
+        if: github.ref_type == 'tag'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_content_type: application/x-sh
+          asset_name: flash-all.sh
+          asset_path: output/flash-all.sh
