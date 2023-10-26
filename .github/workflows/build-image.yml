@@ -62,8 +62,10 @@ jobs:
           tag_name: ${{ github.ref_name }}
           release_name: Release ${{ github.ref_name }}
           body: |
-            Created automatically on tag creation
-          draft: true
+            Created automatically on tag creation.
+            Download all files into the same folder and run ./flash-all.sh script. 
+            Connect ESP32-S3 board to any USB port prior to running script.
+          draft: false
           prerelease: false
       
       - name: Upload partition-table.bin to release
