@@ -1,5 +1,7 @@
 #! /bin/bash -x
 
+# KEEP_ETC=y
+
 SET_BAUDRATE='-b 460800'
 
 pushd esp-hosted/esp_hosted_ng/esp/esp_driver/esp-idf
@@ -19,7 +21,7 @@ esptool.py $SET_BAUDRATE --before=default_reset --after=hard_reset write_flash -
 #
 parttool.py $SET_BAUDRATE write_partition --partition-name linux  --input xipImage
 parttool.py $SET_BAUDRATE write_partition --partition-name rootfs --input rootfs.cramfs
-if [ -z "$keep_etc" ] ; then
+if [ -z $KEEP_ETC ] ; then
 	# read -p 'ready to flash /etc... press enter'
 	parttool.py $SET_BAUDRATE write_partition --partition-name etc --input etc.jffs2
 fi
@@ -27,4 +29,4 @@ fi
 #
 # monitor
 #
-idf.py monitor
+# idf.py monitor

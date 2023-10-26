@@ -7,115 +7,132 @@ on:
 
 jobs:
 
-  build-bootloader:
+  create-release:
     runs-on: ubuntu-latest
-    name: Build Bootloader
+    name: Create release
     steps:
-      - uses: actions/checkout@v3
-        name: Checkout submodules
+      - uses: actions/create-release@latest
+        name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          submodules: "recursive"
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Created automatically of GH Action
+          draft: true
+          prerelease: false
+      
 
-      - name: Prepare esp_driver
-        working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver
-        run: |
-          cmake .
+  # build-bootloader:
+  #   runs-on: ubuntu-latest
+  #   name: Build Bootloader
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       name: Checkout submodules
+  #       with:
+  #         submodules: "recursive"
+
+  #     - name: Prepare esp_driver
+  #       working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver
+  #       run: |
+  #         cmake .
     
-      - name: Build esp_driver
-        working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter
-        run: |
-          . ../esp-idf/export.sh
-          idf.py set-target esp32s3
-          cp sdkconfig.defaults.esp32s3 sdkconfig
-          idf.py build
+  #     - name: Build esp_driver
+  #       working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter
+  #       run: |
+  #         . ../esp-idf/export.sh
+  #         idf.py set-target esp32s3
+  #         cp sdkconfig.defaults.esp32s3 sdkconfig
+  #         idf.py build
 
-      - name: Upload partition-table.bin
-        uses: actions/upload-artifact@v3
-        with:
-          name: partitions-table
-          path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/partition_table/partition-table.bin
+  #     - name: Upload partition-table.bin
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: partitions-table
+  #         path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/partition_table/partition-table.bin
   
-      - name: Upload bootloader.bin
-        uses: actions/upload-artifact@v3
-        with:
-          name: bootloader
-          path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/bootloader/bootloader.bin
+  #     - name: Upload bootloader.bin
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: bootloader
+  #         path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/bootloader/bootloader.bin
 
-      - name: Upload network_adapter.bin
-        uses: actions/upload-artifact@v3
-        with:
-          name: firmware
-          path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/network_adapter.bin
+  #     - name: Upload network_adapter.bin
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: firmware
+  #         path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/network_adapter.bin
 
-  build-image:
-    runs-on: ubuntu-latest
-    name: Build Image
-    steps:
-      - uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: help2man libtool-bin ninja-build
-          version: 1.0
+  # build-image:
+  #   runs-on: ubuntu-latest
+  #   name: Build Image
+  #   steps:
+  #     - uses: awalsh128/cache-apt-pkgs-action@latest
+  #       with:
+  #         packages: help2man libtool-bin ninja-build
+  #         version: 1.0
 
-      - uses: actions/checkout@v3
-        name: Checkout submodules
-        with:
-          submodules: "recursive"
+  #     - uses: actions/checkout@v3
+  #       name: Checkout submodules
+  #       with:
+  #         submodules: "recursive"
 
-      - name: Build dynconfig
-        run: |
-          make -C xtensa-dynconfig ORIG=1 CONF_DIR=`pwd` esp32s3.so
+  #     - name: Build dynconfig
+  #       run: |
+  #         make -C xtensa-dynconfig ORIG=1 CONF_DIR=`pwd` esp32s3.so
       
-      - name: Build crosstoll-NG
-        working-directory: crosstool-NG
-        run: |
-          ./bootstrap && ./configure --enable-local && make
+  #     - name: Build crosstoll-NG
+  #       working-directory: crosstool-NG
+  #       run: |
+  #         ./bootstrap && ./configure --enable-local && make
           
-      - name: Prepare toolchain build
-        working-directory: crosstool-NG
-        run: |
-          ./ct-ng xtensa-esp32s3-linux-uclibcfdpic
-          sed -i -e '/CT_LOG_PROGRESS_BAR/s/y$/n/' .config
+  #     - name: Prepare toolchain build
+  #       working-directory: crosstool-NG
+  #       run: |
+  #         ./ct-ng xtensa-esp32s3-linux-uclibcfdpic
+  #         sed -i -e '/CT_LOG_PROGRESS_BAR/s/y$/n/' .config
 
-      - name: Build toolchain
-        working-directory: crosstool-NG
-        continue-on-error: true
-        run: |
-          CT_PREFIX=`pwd`/builds XTENSA_GNU_CONFIG=`pwd`/../xtensa-dynconfig/esp32s3.so ./ct-ng build --quiet
+  #     - name: Build toolchain
+  #       working-directory: crosstool-NG
+  #       continue-on-error: true
+  #       run: |
+  #         CT_PREFIX=`pwd`/builds XTENSA_GNU_CONFIG=`pwd`/../xtensa-dynconfig/esp32s3.so ./ct-ng build --quiet
 
-      - name: Upload toolchain build log
-        uses: actions/upload-artifact@v3
-        with:
-          name: toolchain-build.log
-          path: |
-            crosstool-NG/build.log
-            crosstool-NG/.config
-        if: failure()
+  #     - name: Upload toolchain build log
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: toolchain-build.log
+  #         path: |
+  #           crosstool-NG/build.log
+  #           crosstool-NG/.config
+  #       if: failure()
 
-      - name: Configure buildroot 
-        run: |
-          make -C buildroot O=`pwd`/build-buildroot-esp32s3 esp32s3_defconfig
-          buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PATH `pwd`/crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic
-          buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
-          buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
+  #     - name: Configure buildroot 
+  #       run: |
+  #         make -C buildroot O=`pwd`/build-buildroot-esp32s3 esp32s3_defconfig
+  #         buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PATH `pwd`/crosstool-NG/builds/xtensa-esp32s3-linux-uclibcfdpic
+  #         buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
+  #         buildroot/utils/config --file build-buildroot-esp32s3/.config --set-str TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX '$(ARCH)-esp32s3-linux-uclibcfdpic'
       
-      - name: Build buildroot 
-        run: |
-          XTENSA_GNU_CONFIG=`pwd`/xtensa-dynconfig/esp32s3.so make -C buildroot O=`pwd`/build-buildroot-esp32s3
+  #     - name: Build buildroot 
+  #       run: |
+  #         XTENSA_GNU_CONFIG=`pwd`/xtensa-dynconfig/esp32s3.so make -C buildroot O=`pwd`/build-buildroot-esp32s3
 
-      - name: Upload xipImage
-        uses: actions/upload-artifact@v3
-        with:
-          name: linux-kernel
-          path: build-buildroot-esp32s3/images/xipImage
+  #     - name: Upload xipImage
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: linux-kernel
+  #         path: build-buildroot-esp32s3/images/xipImage
 
-      - name: Upload rootfs
-        uses: actions/upload-artifact@v3
-        with:
-          name: rootfs
-          path: build-buildroot-esp32s3/images/rootfs.cramfs
+  #     - name: Upload rootfs
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: rootfs
+  #         path: build-buildroot-esp32s3/images/rootfs.cramfs
 
-      - name: Upload etc.jffs2
-        uses: actions/upload-artifact@v3
-        with:
-          name: etc-partition
-          path: build-buildroot-esp32s3/images/etc.jffs2
+  #     - name: Upload etc.jffs2
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: etc-partition
+  #         path: build-buildroot-esp32s3/images/etc.jffs2

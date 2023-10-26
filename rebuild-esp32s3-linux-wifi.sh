@@ -1,7 +1,8 @@
 #! /bin/bash -x
 
 # REBUILD_TOOLCHAIN=y
-REBUILD_KERNEL_ROOTFS=y
+# REBUILD_KERNEL_ROOTFS=y
+# REBUILD_BOOTLOADER=y
 
 CTNG_CONFIG=xtensa-esp32s3-linux-uclibcfdpic
 BUILDROOT_CONFIG=esp32s3_defconfig
@@ -46,7 +47,7 @@ fi
 # bootloader
 #
 pushd esp-hosted/esp_hosted_ng/esp/esp_driver
-if [ ! -f ./network_adapter/build/network_adapter.bin ] || [ ! -f ./network_adapter/build/partition_table/partition-table.bin ] || [ ! -f ./network_adapter/build/bootloader/bootloader.bin ] ; then
+if [ ! -z $REBUILD_BOOTLOADER ] || [ ! -f ./network_adapter/build/network_adapter.bin ] || [ ! -f ./network_adapter/build/partition_table/partition-table.bin ] || [ ! -f ./network_adapter/build/bootloader/bootloader.bin ] ; then
 	cmake .
 	alias python='python3'
 	cd esp-idf

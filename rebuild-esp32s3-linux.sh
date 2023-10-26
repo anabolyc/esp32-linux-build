@@ -1,7 +1,8 @@
 #! /bin/bash -x
 
 # REBUILD_TOOLCHAIN=y
-REBUILD_KERNEL_ROOTFS=y
+# REBUILD_KERNEL_ROOTFS=y
+# REBUILD_BOOTLOADER=y
 
 CTNG_CONFIG=xtensa-esp32s3-linux-uclibcfdpic
 BUILDROOT_CONFIG=esp32s3_defconfig
@@ -46,14 +47,14 @@ fi
 # bootloader
 #
 pushd esp-idf
-# if [ ! -f ./network_adapter/build/network_adapter.bin ] || [ ! -f ./network_adapter/build/partition_table/partition-table.bin ] || [ ! -f ./network_adapter/build/bootloader/bootloader.bin ] ; then
+if [ ! -z $REBUILD_BOOTLOADER ] || [ ! -f ./examples/get-started/linux_boot/build/linux_boot.bin ] || [ ! -f ./examples/get-started/linux_boot/build/partition_table/partition-table.bin ] || [ ! -f ./examples/get-started/linux_boot/build/bootloader/bootloader.bin ] ; then
 	alias python='python3'
 	. export.sh
 	cd examples/get-started/linux_boot
 	idf.py set-target esp32s3
 	cp $ESP_HOSTED_CONFIG sdkconfig
 	idf.py build
-# fi
+fi
 popd
 
 #
