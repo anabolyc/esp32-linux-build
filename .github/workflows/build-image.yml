@@ -9,11 +9,52 @@ on:
 
 jobs:
 
-  create-release:
+  build-bootloader:
     runs-on: ubuntu-latest
-    name: Create release
+    name: Build Bootloader
     steps:
       - uses: actions/checkout@v3
+        name: Checkout submodules
+        with:
+          submodules: "recursive"
+
+      - name: Prepare esp_driver
+        working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver
+        run: |
+          cmake .
+    
+      - name: Build esp_driver
+        working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter
+        run: |
+          . ../esp-idf/export.sh
+          idf.py set-target esp32s3
+          cp sdkconfig.defaults.esp32s3 sdkconfig
+          idf.py build
+
+      - name: Upload partition-table.bin
+        uses: actions/upload-artifact@v3
+        with:
+          name: partitions-table
+          path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/partition_table/partition-table.bin
+  
+      - name: Upload bootloader.bin
+        uses: actions/upload-artifact@v3
+        with:
+          name: bootloader
+          path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/bootloader/bootloader.bin
+
+      - name: Upload network_adapter.bin
+        uses: actions/upload-artifact@v3
+        with:
+          name: firmware
+          path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/network_adapter.bin
+
+  # create-release:
+  #   runs-on: ubuntu-latest
+  #   needs: [ build-bootloader ]
+  #   name: Create release
+  #   steps:
+  #     - uses: actions/checkout@v3
 
       - uses: actions/create-release@latest
         if: github.ref_type == 'tag'
@@ -25,60 +66,42 @@ jobs:
           tag_name: ${{ github.ref_name }}
           release_name: Release ${{ github.ref_name }}
           body: |
-            Created automatically on tag
+            Created automatically on tag creation
           draft: true
           prerelease: false
       
-      - name: Upload Release Asset
+      - name: Upload partition-table.bin
         if: github.ref_type == 'tag'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./rebuild-esp32s3-linux-wifi.sh
-          asset_name: rebuild-esp32s3-linux-wifi.sh
-          asset_content_type: text/x-shellscript
+          asset_content_type: application/x-binary
+          asset_name: partitions-table
+          asset_path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/partition_table/partition-table.bin
 
-  # build-bootloader:
-  #   runs-on: ubuntu-latest
-  #   name: Build Bootloader
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       name: Checkout submodules
-  #       with:
-  #         submodules: "recursive"
+      - name: Upload bootloader.bin
+        if: github.ref_type == 'tag'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_content_type: application/x-binary
+          asset_name: bootloader
+          asset_path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/bootloader/bootloader.bin
 
-  #     - name: Prepare esp_driver
-  #       working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver
-  #       run: |
-  #         cmake .
-    
-  #     - name: Build esp_driver
-  #       working-directory: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter
-  #       run: |
-  #         . ../esp-idf/export.sh
-  #         idf.py set-target esp32s3
-  #         cp sdkconfig.defaults.esp32s3 sdkconfig
-  #         idf.py build
-
-  #     - name: Upload partition-table.bin
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: partitions-table
-  #         path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/partition_table/partition-table.bin
-  
-  #     - name: Upload bootloader.bin
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: bootloader
-  #         path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/bootloader/bootloader.bin
-
-  #     - name: Upload network_adapter.bin
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: firmware
-  #         path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/network_adapter.bin
+      - name: Upload network_adapter.bin
+        if: github.ref_type == 'tag'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_content_type: application/x-binary
+          asset_name: firmware
+          asset_path: esp-hosted/esp_hosted_ng/esp/esp_driver/network_adapter/build/network_adapter.bin
 
   # build-image:
   #   runs-on: ubuntu-latest
