@@ -19,8 +19,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: $GITHUB_REF_NAME
-          release_name: Release $GITHUB_REF_NAME
+          tag_name: ${{ github.ref.name }}
+          release_name: Release ${{ github.ref.name }}
           body: |
             Created automatically of GH Action
           draft: true
