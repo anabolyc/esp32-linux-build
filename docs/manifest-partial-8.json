@@ -1,0 +1,16 @@
+{
+  "name": "Linux on ESP32-S3",
+  "version": "1.0",
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [
+        { "path": "https://github.com/anabolyc/esp32-linux-build/releases/download/v1.0/bootloader.bin", "offset": 0 },
+        { "path": "https://github.com/anabolyc/esp32-linux-build/releases/download/v1.0/partition-table.bin", "offset": 32768 },
+        { "path": "https://github.com/anabolyc/esp32-linux-build/releases/download/v1.0/network_adapter.bin", "offset": 65536 },
+        { "path": "https://github.com/anabolyc/esp32-linux-build/releases/download/v1.0/xipImage", "offset": 1179648 },
+        { "path": "https://github.com/anabolyc/esp32-linux-build/releases/download/v1.0/rootfs.cramfs", "offset": 4718592 }
+      ]
+    }
+  ]
+}
