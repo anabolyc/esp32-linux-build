@@ -19,4 +19,4 @@ This is a demo installer website for [Linux on ESP32-S3](http://wiki.osll.ru/dok
 
 ## Demo
 
-![Screencast](/img/Screencast%20from%2028.10.2023%2021:54:48.gif)
+![Screencast](img/Screencast%20from%2028.10.2023%2021:54:48.gif)
