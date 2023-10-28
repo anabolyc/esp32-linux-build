@@ -32,3 +32,7 @@ Hope that will help others to follow authors steps.
 - [uclibc-ng-xtensa](https://github.com/jcmvbkbc/uclibc-ng-xtensa/tree/xtensa-fdpic)
 - [buildroot](https://github.com/jcmvbkbc/buildroot/tree/xtensa-2023.08-fdpic)
 - [crosstool-NG](https://github.com/jcmvbkbc/crosstool-NG/tree/xtensa-fdpic)
+
+## Demo
+
+![Screencast](/docs/img/Screencast%20from%2028.10.2023%2021:54:48.gif)

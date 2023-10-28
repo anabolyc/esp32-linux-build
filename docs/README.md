@@ -16,3 +16,7 @@ This is a demo installer website for [Linux on ESP32-S3](http://wiki.osll.ru/dok
 
 <p>Some boards require manual download mode triggering, by pressing resetting the board while pressing IO0 button </p>
 <p>If your board has two USB ports, you might need to use both. One for flashing, other to see Linux serial output</p>
+
+## Demo
+
+![Screencast](/img/Screencast%20from%2028.10.2023%2021:54:48.gif)
